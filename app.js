@@ -63,23 +63,27 @@ function get_Lora_sensing_vlaue(){
     client_.on("uplink", function (devID, payload) {
       console.log("Received uplink from ", devID)
       var dev_eui = payload.hardware_serial;
-      console.log(payload);
+      console.log(typeof(payload));
       console.log(dev_eui);
-      var enc = new Buffer(payload["payload_raw"]).toString('hex');
-      var cin_parent_path = '/' + config["cse"].cbname + '/' + config["ae"]["appname"] + '/' + dev_eui + '/' + "up";
+      console.log(payload["payload_raw"]);
+      if(payload["payload_raw"] == null){
+        console.log("Null Playload");
+      }
+      else{
+        var enc = new Buffer(payload["payload_raw"]).toString('hex');
+        var cin_parent_path = '/' + config["cse"].cbname + '/' + config["ae"]["appname"] + '/' + dev_eui + '/' + "up";
 
-      console.log(enc);  
-      var cin_obj = {
-        'm2m:cin': {
-          'con': enc
-        }
-      };
-
+        console.log(enc);  
+        var cin_obj = {
+            'm2m:cin': {
+            'con': enc
+            }
+        };
+      
       var resp = keti_mobius.create_cin(cin_parent_path, cin_obj);
       console.log(resp);
-
+    }
     })
-
 }
 
 function init_mqtt_client() {
@@ -324,7 +328,7 @@ function mqtt_noti_action(jsonObj, callback) {
             var resp_sub = keti_mobius.retrieve_sub(sub_path);
 
             if (resp_sub.code == 200) {
-                resp_sub = keti_mobius.delete_res(sub_path);
+                // resp_sub = keti_mobius.delete_res(sub_path);
 
                 if (resp_sub.code == 200) {
                     resp_sub = keti_mobius.create_sub(sub_parent_path, sub_obj);
