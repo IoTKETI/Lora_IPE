@@ -22,7 +22,7 @@ keti_mobius.set_mobius_info(config.cse.cbhost, config.cse.cbport);
 
 var client_;
 var sensor_ids = [];
-lora_client = ttn.data(appID,accessKey);
+// lora_client = ttn.data(appID,accessKey);
 
 function status_Check(){
     app.get('/status', (req, res) => {
@@ -259,12 +259,21 @@ function response_mqtt (rsp_topic, rsc, to, fr, rqi, inpcs) {
 
 };
 
-function Lora_noti(devID,cinObj){
-    var payload_raw=[cinObj];
+function Lora_noti(devID,cinObj){//downlink
+    // var payload_raw=[cinObj];
 
-    console.log("DevID :" + devID + "," + "Data :" + payload_raw);
-
-    client_.send("devID",payload_raw);
+    // console.log("DevID :" + devID + "," + "Data :" + payload_raw);
+    // console.log(typeof(payload_raw))
+    // console.log(typeof(devID))
+    // devID = devID.toString();
+    // payload_raw = payload_raw.toString();
+    // console.log(typeof(devID))
+    // console.log(typeof(payload_raw))
+    // console.log(devID)
+    // console.log(payload_raw)
+    // var devID2 = "702c1ffffe4a2ccb";
+    // payload_raw2="3030303230313032";
+    // client_.send(devID2,payload_raw2);
 }
 
 function mqtt_noti_action(jsonObj, callback) {
