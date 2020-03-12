@@ -260,20 +260,11 @@ function response_mqtt (rsp_topic, rsc, to, fr, rqi, inpcs) {
 };
 
 function Lora_noti(devID,cinObj){//downlink
-    // var payload_raw=[cinObj];
-
-    // console.log("DevID :" + devID + "," + "Data :" + payload_raw);
-    // console.log(typeof(payload_raw))
-    // console.log(typeof(devID))
-    // devID = devID.toString();
-    // payload_raw = payload_raw.toString();
-    // console.log(typeof(devID))
-    // console.log(typeof(payload_raw))
-    // console.log(devID)
-    // console.log(payload_raw)
-    // var devID2 = "702c1ffffe4a2ccb";
-    // payload_raw2="3030303230313032";
-    // client_.send(devID2,payload_raw2);
+    console.log('##############################');
+    console.log(devID, cinObj);
+    console.log('##############################');
+    payload = new Buffer.from(cinObj[0],'hex');
+    client_.send(devID,payload);
 }
 
 function mqtt_noti_action(jsonObj, callback) {
