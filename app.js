@@ -464,7 +464,7 @@ function status_Check(){
     //         res.send({status:""});
     //     }
     // });
-    app.listen(conf.health, () => {
+    app.listen(conf.health.port, () => {
         console.log('Health Checker Start');
     });
 }
