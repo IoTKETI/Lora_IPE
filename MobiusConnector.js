@@ -7,7 +7,7 @@ var http = require('http');
 
 exports.mobius = function () {
 
-    var server_ip = '203.253.128.151';
+    var server_ip = '';
     var server_port = 7579;
     var ae_id = '';
 
