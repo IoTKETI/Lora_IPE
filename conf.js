@@ -12,7 +12,8 @@ cse.id = "/Mobius2";
 cse.mqttport = "1883";
 
 //ae config
-ae.name = "9999991000000057";
+// ae.name = "9999991000000057";
+ae.name = "lora_test";
 ae.id = "S" + ae.name;
 ae.parent = "/" + cse.name;
 ae.appid = "lora"

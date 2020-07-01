@@ -1,4 +1,4 @@
-// var events = require('events');
+var events = require('events');
 var mqtt = require('mqtt');
 var util = require('util');
 var fs = require('fs');
@@ -10,7 +10,7 @@ var mobius = require('./MobiusConnector').mobius;
 
 const SENSOR_LIST_FILE = 'sensor_list.txt';
 global.conf = require('./conf.js');
-// var event = new events.EventEmitter();
+var event = new events.EventEmitter();
 var keti_mobius = new mobius();
 keti_mobius.set_mobius_info(conf.cse.host, conf.cse.port);
 
@@ -35,7 +35,7 @@ function payload_decode(message){
     }
 
     //------------device info---------------
-    sub_json['device_type'] = device_type;
+//    sub_json['device_type'] = device_type;
     if (device_type == '10'){
         packet_json['device_type'] = 'Radar';
     }
@@ -133,19 +133,18 @@ function payload_decode(message){
 
 function ls_downlink(devID,cinObj){//downlink
     console.log(devID + ' Configuration');
-    console.log(devID, cinObj);
 
     var payload_message = {}
-    var ls_txtopic = util.format('application/1/device/%s/tx', devID);
+    var ls_txtopic = util.format('application/2/device/%s/tx', devID);
 
-    payload = new Buffer.from(cinObj[0],'hex');
-
+    var downlink_message = new Buffer.from(cinObj[0], 'hex');
+    var encode_message = downlink_message.toString('base64');
+    // console.log(hex_payload)
     payload_message.confirmed = true;
     payload_message.fPort = 2;
-    payload_message.data = payload;
-    payload_message.timing = "IMMEDIATELY";
+    payload_message.data = encode_message;
+    // payload_message.timing = "IMMEDIATELY";
     console.log(payload_message)
-
     ls_mqtt_client.publish(ls_txtopic, JSON.stringify(payload_message));
 }
 
@@ -195,15 +194,12 @@ function on_mqtt_connect() { //mobius mqtt connet
     console.log('[mqtt_connect] noti_topic : ' + noti_topic);
 }
 
-// var tx_topic string = "application/1/device/702c1ffffe36ff79/tx"
-// var ack_topic string = "application/1/device/702c1ffffe36ff79/ack"
-// var rx_topic string = "application/1/device/702c1ffffe36ff79/rx"
 function ls_on_mqtt_connect() { //lora_app_server mqtt connet
     for (var i = 0; i < sensor_ids.length; i++){
-        var ls_rxtopic = util.format('application/1/device/%s/rx', sensor_ids[i]);
-        mqtt_client.unsubscribe(ls_rxtopic);
-        mqtt_client.subscribe(ls_rxtopic);
-        console.log('[mqtt_connect] ls_noti_topic : ' + ls_rxtopic);
+        var ls_rxtopic = util.format('application/2/device/%s/rx', sensor_ids[i].toLowerCase());
+        ls_mqtt_client.unsubscribe(ls_rxtopic);
+        ls_mqtt_client.subscribe(ls_rxtopic);
+        console.log('[ls_mqtt_connect] ls_noti_topic : ' + ls_rxtopic);
     }
 }
 
@@ -284,12 +280,12 @@ function init_resource(){
         for (var i = 0; i < sensor_ids.length; i++) {
             var cnt_sensor_obj = {
                 'm2m:cnt':{
-                'rn' : sensor_ids[i]
+                'rn' : sensor_ids[i].toLowerCase()
                 }
             };
             var cnt_resp = keti_mobius.create_cnt(cnt_parent_path, cnt_sensor_obj);
             if (cnt_resp.code == 201 || cnt_resp.code == 409){
-                var cnt2_parent_path = cnt_parent_path +'/'+ sensor_ids[i];
+                var cnt2_parent_path = cnt_parent_path +'/'+ sensor_ids[i].toLowerCase();
                 var cnt_upobj = {
                     'm2m:cnt':{
                     'rn' : "up"
@@ -335,7 +331,7 @@ function init_resource(){
 
         }
         for (var i = 0; i < sensor_ids.length; i++) {
-            var sub_downlink = sub_ae_parent_path + '/'+ sensor_ids[i] +'/'+"down";
+            var sub_downlink = sub_ae_parent_path + '/'+ sensor_ids[i].toLowerCase() +'/'+"down";
             var sub_body = {nu:['mqtt://' + conf.cse.host  +'/'+ conf.ae.id + '?ct=json']};
             var sub_obj = {
                 'm2m:sub':
@@ -382,7 +378,7 @@ function mqtt_noti_action(jsonObj, callback) {
 
         if(net == '3'){
             var devID = sur[2].toLowerCase();
-            ls_downlink(devID,cinObj);
+            if(cinObj[0]=='123'){ls_downlink(devID,cinObj)};
         }
         else if (net == '4'){
             var cnt_parent_path = conf.ae.parent + '/' + conf.ae.name;
@@ -393,7 +389,7 @@ function mqtt_noti_action(jsonObj, callback) {
                 'm2m:cnt':{
                 'rn' : rn
                 }
-            };
+            };1
             var cnt_resp = keti_mobius.create_cnt(cnt_parent_path, retry_cnt_sensor_obj);
             if (cnt_resp.code == 201 || cnt_resp.code == 409){
                 var cnt2_parent_path = cnt_parent_path +'/'+ rn;
