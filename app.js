@@ -144,6 +144,7 @@ function direct15_downlink(devID){//downlink
     var ls_txtopic = util.format('application/2/device/%s/tx', devID);
 
     var downlink_message = '7e060114070101007f';
+    downlink_message = new Buffer.from(downlink_message, 'hex');
     var encode_message = downlink_message.toString('base64');
     // console.log(hex_payload)
     payload_message.confirmed = true;
