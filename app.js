@@ -14,7 +14,7 @@ var event = new events.EventEmitter();
 var keti_mobius = new mobius();
 keti_mobius.set_mobius_info(conf.cse.host, conf.cse.port);
 
-function payload_decode(message){
+function payload_decode(dev_eui,message){
     opcode = message.substring(8,10);
     device_type = message.substring(10,12);
     parking_data = message.substring(12,14);
@@ -56,19 +56,19 @@ function payload_decode(message){
 
     //--------------device error----------------
     if (device_err == '30'){
-        packet_json['device_err'] = 'normal';
+        packet_json['device_info'] = 'normal';
     }
     else if (device_err == '31'){
-        packet_json['device_err'] = 'sensor_error';
+        packet_json['device_info'] = 'sensor_error';
     }
     else if (device_err == '32'){
-        packet_json['device_err'] = 'battery_error';
+        packet_json['device_info'] = 'battery_error';
     }
     else if (device_err == '33'){
-        packet_json['device_err'] = 'reset';
+        packet_json['device_info'] = 'reset';
     }
     else if (device_err == '34'){
-        packet_json['device_err'] = 'radar_error';
+        packet_json['device_info'] = 'radar_error';
     }
 
     //---------------rssi-----------------
@@ -106,29 +106,52 @@ function payload_decode(message){
     }
     else if (check_cycle == '01'){
         packet_json['check_cycle'] = 30;
+        direct15_downlink(dev_eui);
     }
     else if (check_cycle == '02'){
         packet_json['check_cycle'] = 60;
+        direct15_downlink(dev_eui);
     }
     else if (check_cycle == '03'){
         packet_json['check_cycle'] = 120;
+        direct15_downlink(dev_eui);
     }
     else if (check_cycle == '04'){
         packet_json['check_cycle'] = 180;
+        direct15_downlink(dev_eui);
     }
     else if (check_cycle == '05'){
         packet_json['check_cycle'] = 240;
+        direct15_downlink(dev_eui);
     }
     else if (check_cycle == '06'){
         packet_json['check_cycle'] = 300;
+        direct15_downlink(dev_eui);
     }
     else if (check_cycle == '07'){
         packet_json['check_cycle'] = 600;
+        direct15_downlink(dev_eui);
     }
 
     //-------------json print-------------
     console.log(packet_json);
     return packet_json
+}
+function direct15_downlink(devID){//downlink
+    console.log(devID + ' Configuration');
+
+    var payload_message = {}
+    var ls_txtopic = util.format('application/2/device/%s/tx', devID);
+
+    var downlink_message = '7e060114070101007f';
+    var encode_message = downlink_message.toString('base64');
+    // console.log(hex_payload)
+    payload_message.confirmed = true;
+    payload_message.fPort = 2;
+    payload_message.data = encode_message;
+    // payload_message.timing = "IMMEDIATELY";
+    console.log(payload_message)
+    ls_mqtt_client.publish(ls_txtopic, JSON.stringify(payload_message));
 }
 
 function ls_downlink(devID,cinObj){//downlink
@@ -251,7 +274,7 @@ function ls_on_mqtt_message_recv(topic, message) {
         console.log("payload_message is " + message_parse);
         var new_message = new Buffer.from(message_parse, 'base64');
         var decode_message = new_message.toString('hex');
-        var packet_decode = payload_decode(decode_message);
+        var packet_decode = payload_decode(dev_eui,decode_message);
         var cin_path = conf.ae.parent + '/' +conf.ae.name + '/' + dev_eui + '/' + 'up';
         var cin_obj = {
             'm2m:cin':{
@@ -378,7 +401,7 @@ function mqtt_noti_action(jsonObj, callback) {
 
         if(net == '3'){
             var devID = sur[2].toLowerCase();
-            if(cinObj[0]=='123'){ls_downlink(devID,cinObj)};
+            ls_downlink(devID,cinObj);//sensingserver or
         }
         else if (net == '4'){
             var cnt_parent_path = conf.ae.parent + '/' + conf.ae.name;
