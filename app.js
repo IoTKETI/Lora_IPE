@@ -103,6 +103,8 @@ function payload_decode(dev_eui,message){
     //------------checkcycle---------------
     if (check_cycle == '00'){
         packet_json['check_cycle'] = 15;
+//        direct30_downlink(dev_eui);
+
     }
     else if (check_cycle == '01'){
         packet_json['check_cycle'] = 30;
@@ -110,27 +112,27 @@ function payload_decode(dev_eui,message){
     }
     else if (check_cycle == '02'){
         packet_json['check_cycle'] = 60;
-        direct15_downlink(dev_eui);
+//        direct15_downlink(dev_eui);
     }
     else if (check_cycle == '03'){
         packet_json['check_cycle'] = 120;
-        direct15_downlink(dev_eui);
+//        direct15_downlink(dev_eui);
     }
     else if (check_cycle == '04'){
         packet_json['check_cycle'] = 180;
-        direct15_downlink(dev_eui);
+//        direct15_downlink(dev_eui);
     }
     else if (check_cycle == '05'){
         packet_json['check_cycle'] = 240;
-        direct15_downlink(dev_eui);
+//        direct15_downlink(dev_eui);
     }
     else if (check_cycle == '06'){
         packet_json['check_cycle'] = 300;
-        direct15_downlink(dev_eui);
+//        direct15_downlink(dev_eui);
     }
     else if (check_cycle == '07'){
         packet_json['check_cycle'] = 600;
-        direct15_downlink(dev_eui);
+//        direct15_downlink(dev_eui);
     }
 
     //-------------json print-------------
@@ -143,7 +145,8 @@ function direct15_downlink(devID){//downlink
     var payload_message = {}
     var ls_txtopic = util.format('application/2/device/%s/tx', devID);
 
-    var downlink_message = '7e060114070101007f';
+//    var downlink_message = '7e060114070101007f';  // 15sec
+    var downlink_message = '7e07011407010000157f';
     downlink_message = new Buffer.from(downlink_message, 'hex');
     var encode_message = downlink_message.toString('base64');
     // console.log(hex_payload)
@@ -154,6 +157,27 @@ function direct15_downlink(devID){//downlink
     console.log(payload_message)
     ls_mqtt_client.publish(ls_txtopic, JSON.stringify(payload_message));
 }
+
+function direct30_downlink(devID){//downlink
+    console.log(devID + ' Configuration');
+
+    var payload_message = {}
+    var ls_txtopic = util.format('application/2/device/%s/tx', devID);
+
+    var downlink_message = '7e07011407010001157f';
+
+//    var downlink_message = '7e060114070101017f'; // 30sec
+    downlink_message = new Buffer.from(downlink_message, 'hex');
+    var encode_message = downlink_message.toString('base64');
+    // console.log(hex_payload)
+    payload_message.confirmed = true;
+    payload_message.fPort = 2;
+    payload_message.data = encode_message;
+    // payload_message.timing = "IMMEDIATELY";
+    console.log(payload_message)
+    ls_mqtt_client.publish(ls_txtopic, JSON.stringify(payload_message));
+}
+
 
 function ls_downlink(devID,cinObj){//downlink
     console.log(devID + ' Configuration');
@@ -174,7 +198,12 @@ function ls_downlink(devID,cinObj){//downlink
 
 function read_sensor_id_list(){
     var str = String(fs.readFileSync(SENSOR_LIST_FILE));
-    sensor_ids = str.split('\r\n');
+    sensor_ids = str.split(',');
+    for (i = 0; i < sensor_ids.length; i++){
+       sensor_ids[i] = JSON.parse(sensor_ids[i]);
+       sensor_ids[i] = sensor_ids[i]["id"];
+    }
+    console.log(sensor_ids);
 }
 
 function init_mqtt_client() {
