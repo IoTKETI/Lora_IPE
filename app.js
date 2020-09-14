@@ -13,7 +13,8 @@ global.conf = require('./conf.js');
 var event = new events.EventEmitter();
 var keti_mobius = new mobius();
 keti_mobius.set_mobius_info(conf.cse.host, conf.cse.port);
-
+var latest_data = [];
+var latest_data_count = 0;
 function payload_decode(dev_eui,message){
     opcode = message.substring(8,10);
     device_type = message.substring(10,12);
@@ -112,27 +113,27 @@ function payload_decode(dev_eui,message){
     }
     else if (check_cycle == '02'){
         packet_json['check_cycle'] = 60;
-//        direct15_downlink(dev_eui);
+        direct15_downlink(dev_eui);
     }
     else if (check_cycle == '03'){
         packet_json['check_cycle'] = 120;
-//        direct15_downlink(dev_eui);
+        direct15_downlink(dev_eui);
     }
     else if (check_cycle == '04'){
         packet_json['check_cycle'] = 180;
-//        direct15_downlink(dev_eui);
+        direct15_downlink(dev_eui);
     }
     else if (check_cycle == '05'){
         packet_json['check_cycle'] = 240;
-//        direct15_downlink(dev_eui);
+        direct15_downlink(dev_eui);
     }
     else if (check_cycle == '06'){
         packet_json['check_cycle'] = 300;
-//        direct15_downlink(dev_eui);
+        direct15_downlink(dev_eui);
     }
     else if (check_cycle == '07'){
         packet_json['check_cycle'] = 600;
-//        direct15_downlink(dev_eui);
+        direct15_downlink(dev_eui);
     }
 
     //-------------json print-------------
@@ -311,6 +312,13 @@ function ls_on_mqtt_message_recv(topic, message) {
                 'con': JSON.stringify(packet_decode)
             }
         }
+        var hartbeatdata = status_payload(cin_path, packet_decode);
+        latest_data[latest_data_count] = hartbeatdata;
+	latest_data_count++;
+	if(latest_data_count == 3){
+          latest_data_count = 0;
+	}
+        console.log(latest_data);
         var resp = keti_mobius.create_cin(cin_path, cin_obj);
         console.log(resp);
 
@@ -494,8 +502,33 @@ function mqtt_noti_action(jsonObj, callback) {
 
 setTimeout(init_resource,100)
 
+var keti_mobius_hartbeat = new mobius();
+keti_mobius_hartbeat.set_mobius_info('203.253.128.164', conf.cse.port);
+
+function status_payload(path,packet_decode){
+   var times = new Date();
+   var timestamp = times.toISOString().replace(/-/, '').replace(/-/, '').replace(/:/, '').replace(/:/, '').replace(/\..+/, '');
+   var hartbeatcheck = {
+        timestamp: timestamp,
+        targetResID: path,
+        data: packet_decode
+   };
+   return hartbeatcheck
+}
 function status_Check(){
-    app.get('/status', (req, res) => {
+
+  var cin_path = '/Mobius/sync_parking/heartbeat/LoRa_IPE';
+  setInterval(function(){
+    var cin_obj = {
+       'm2m:cin':{
+       'con': JSON.stringify(latest_data)
+       }
+    };
+    var resp = keti_mobius_hartbeat.create_cin(cin_path, cin_obj);
+    console.log(resp);
+//},10000);
+},1800000);
+    /*app.get('/status', (req, res) => {
         const healthcheck = {
             uptime: process.uptime(),
             status: "UP",
@@ -516,4 +549,6 @@ function status_Check(){
     app.listen(conf.health.port, () => {
         console.log('Health Checker Start');
     });
+    */
 }
+

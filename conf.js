@@ -13,7 +13,7 @@ cse.mqttport = "1883";
 
 //ae config
 // ae.name = "9999991000000057";
-ae.name = "lora_test";
+ae.name = "keti_parking";
 ae.id = "S" + ae.name;
 ae.parent = "/" + cse.name;
 ae.appid = "lora"
@@ -23,7 +23,8 @@ lora.host = "203.253.128.164";
 lora.mqttport = "1883";
 
 //health config
-health.port = "8369";
+health.ae = "";
+health.cnt = "";
 
 conf.cse = cse;
 conf.ae = ae;
