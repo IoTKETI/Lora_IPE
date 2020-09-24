@@ -3,8 +3,6 @@ var mqtt = require('mqtt');
 var util = require('util');
 var fs = require('fs');
 var jsonpath = require('jsonpath');
-const express = require('express');
-const app = express();
 var sensor_ids = [];
 var mobius = require('./MobiusConnector').mobius;
 
@@ -13,172 +11,6 @@ global.conf = require('./conf.js');
 var event = new events.EventEmitter();
 var keti_mobius = new mobius();
 keti_mobius.set_mobius_info(conf.cse.host, conf.cse.port);
-var latest_data = [];
-var latest_data_count = 0;
-function payload_decode(dev_eui,message){
-    opcode = message.substring(8,10);
-    device_type = message.substring(10,12);
-    parking_data = message.substring(12,14);
-    battery = message.substring(14,16);
-    device_err = message.substring(16,18);
-    rssi = message.substring(18,20);
-    snr = message.substring(20,22);
-    radar_info = message.substring(22,24);
-    check_cycle = message.substring(24,26);
-
-    var packet_json = {};
-    //---------------opcode------------------
-    if (opcode == '04'){
-        packet_json['opcode'] = 'event';
-    }
-    else if (opcode == '02'){
-        packet_json['opcode'] = 'periodic';
-    }
-
-    //------------device info---------------
-//    sub_json['device_type'] = device_type;
-    if (device_type == '10'){
-        packet_json['device_type'] = 'Radar';
-    }
-    else if (device_type == '20'){
-        packet_json['device_type'] = 'Magnetic';
-    }
-
-    //------------parking data---------------
-    if (parking_data == '30'){
-        packet_json['parking'] = 'free';
-    }
-    else if (parking_data == '31'){
-        packet_json['parking'] = 'occupied';
-    }
-
-    //--------------battery----------------
-    packet_json['battery'] = parseInt(battery, 16);
-
-    //--------------device error----------------
-    if (device_err == '30'){
-        packet_json['device_info'] = 'normal';
-    }
-    else if (device_err == '31'){
-        packet_json['device_info'] = 'sensor_error';
-    }
-    else if (device_err == '32'){
-        packet_json['device_info'] = 'battery_error';
-    }
-    else if (device_err == '33'){
-        packet_json['device_info'] = 'reset';
-    }
-    else if (device_err == '34'){
-        packet_json['device_info'] = 'radar_error';
-    }
-
-    //---------------rssi-----------------
-    packet_json['rssi'] = parseInt(rssi, 16);
-
-    //---------------snr----------------
-    packet_json['snr'] = parseInt(snr, 16);;
-
-    //------------radarinfo---------------
-    if (radar_info === '00'){
-        packet_json['radar_info'] = 'parking_event';
-    }
-    else if (radar_info == '01'){
-        packet_json['radar_info'] = 'device_init';
-    }
-    else if (radar_info == '02'){
-        packet_json['radar_info'] = 'reboot_reset';
-    }
-    else if (radar_info == '03'){
-        packet_json['radar_info'] = 'system_reset';
-    }
-    else if (radar_info == '04'){
-        packet_json['radar_info'] = 'report';
-    }
-    else if (radar_info == '05'){
-        packet_json['radar_info'] = 'radar_error';
-    }
-    else if (radar_info == '06'){
-        packet_json['radar_info'] = 'radar_repair';
-    }
-
-    //------------checkcycle---------------
-    if (check_cycle == '00'){
-        packet_json['check_cycle'] = 15;
-//        direct30_downlink(dev_eui);
-
-    }
-    else if (check_cycle == '01'){
-        packet_json['check_cycle'] = 30;
-        direct15_downlink(dev_eui);
-    }
-    else if (check_cycle == '02'){
-        packet_json['check_cycle'] = 60;
-        direct15_downlink(dev_eui);
-    }
-    else if (check_cycle == '03'){
-        packet_json['check_cycle'] = 120;
-        direct15_downlink(dev_eui);
-    }
-    else if (check_cycle == '04'){
-        packet_json['check_cycle'] = 180;
-        direct15_downlink(dev_eui);
-    }
-    else if (check_cycle == '05'){
-        packet_json['check_cycle'] = 240;
-        direct15_downlink(dev_eui);
-    }
-    else if (check_cycle == '06'){
-        packet_json['check_cycle'] = 300;
-        direct15_downlink(dev_eui);
-    }
-    else if (check_cycle == '07'){
-        packet_json['check_cycle'] = 600;
-        direct15_downlink(dev_eui);
-    }
-
-    //-------------json print-------------
-    console.log(packet_json);
-    return packet_json
-}
-function direct15_downlink(devID){//downlink
-    console.log(devID + ' Configuration');
-
-    var payload_message = {}
-    var ls_txtopic = util.format('application/2/device/%s/tx', devID);
-
-//    var downlink_message = '7e060114070101007f';  // 15sec
-    var downlink_message = '7e07011407010000157f';
-    downlink_message = new Buffer.from(downlink_message, 'hex');
-    var encode_message = downlink_message.toString('base64');
-    // console.log(hex_payload)
-    payload_message.confirmed = true;
-    payload_message.fPort = 2;
-    payload_message.data = encode_message;
-    // payload_message.timing = "IMMEDIATELY";
-    console.log(payload_message)
-    ls_mqtt_client.publish(ls_txtopic, JSON.stringify(payload_message));
-}
-
-function direct30_downlink(devID){//downlink
-    console.log(devID + ' Configuration');
-
-    var payload_message = {}
-    var ls_txtopic = util.format('application/2/device/%s/tx', devID);
-
-    var downlink_message = '7e07011407010001157f';
-
-//    var downlink_message = '7e060114070101017f'; // 30sec
-    downlink_message = new Buffer.from(downlink_message, 'hex');
-    var encode_message = downlink_message.toString('base64');
-    // console.log(hex_payload)
-    payload_message.confirmed = true;
-    payload_message.fPort = 2;
-    payload_message.data = encode_message;
-    // payload_message.timing = "IMMEDIATELY";
-    console.log(payload_message)
-    ls_mqtt_client.publish(ls_txtopic, JSON.stringify(payload_message));
-}
-
 
 function ls_downlink(devID,cinObj){//downlink
     console.log(devID + ' Configuration');
@@ -250,7 +82,7 @@ function on_mqtt_connect() { //mobius mqtt connet
 
 function ls_on_mqtt_connect() { //lora_app_server mqtt connet
     for (var i = 0; i < sensor_ids.length; i++){
-        var ls_rxtopic = util.format('application/2/device/%s/rx', sensor_ids[i].toLowerCase());
+        var ls_rxtopic = util.format('application/6/device/%s/rx', sensor_ids[i].toLowerCase());
         ls_mqtt_client.unsubscribe(ls_rxtopic);
         ls_mqtt_client.subscribe(ls_rxtopic);
         console.log('[ls_mqtt_connect] ls_noti_topic : ' + ls_rxtopic);
@@ -305,23 +137,14 @@ function ls_on_mqtt_message_recv(topic, message) {
         console.log("payload_message is " + message_parse);
         var new_message = new Buffer.from(message_parse, 'base64');
         var decode_message = new_message.toString('hex');
-        var packet_decode = payload_decode(dev_eui,decode_message);
         var cin_path = conf.ae.parent + '/' +conf.ae.name + '/' + dev_eui + '/' + 'up';
         var cin_obj = {
             'm2m:cin':{
-                'con': JSON.stringify(packet_decode)
+                'con': decode_message
             }
         }
-        var hartbeatdata = status_payload(cin_path, packet_decode);
-        latest_data[latest_data_count] = hartbeatdata;
-	latest_data_count++;
-	if(latest_data_count == 3){
-          latest_data_count = 0;
-	}
-        console.log(latest_data);
         var resp = keti_mobius.create_cin(cin_path, cin_obj);
         console.log(resp);
-
     }
 }
 
@@ -425,7 +248,6 @@ function init_resource(){
             }
         }
         init_mqtt_client();
-        status_Check();
     }
 }
 
@@ -501,54 +323,3 @@ function mqtt_noti_action(jsonObj, callback) {
 }
 
 setTimeout(init_resource,100)
-
-var keti_mobius_hartbeat = new mobius();
-keti_mobius_hartbeat.set_mobius_info('203.253.128.164', conf.cse.port);
-
-function status_payload(path,packet_decode){
-   var times = new Date();
-   var timestamp = times.toISOString().replace(/-/, '').replace(/-/, '').replace(/:/, '').replace(/:/, '').replace(/\..+/, '');
-   var hartbeatcheck = {
-        timestamp: timestamp,
-        targetResID: path,
-        data: packet_decode
-   };
-   return hartbeatcheck
-}
-function status_Check(){
-
-  var cin_path = '/Mobius/sync_parking/heartbeat/LoRa_IPE';
-  setInterval(function(){
-    var cin_obj = {
-       'm2m:cin':{
-       'con': JSON.stringify(latest_data)
-       }
-    };
-    var resp = keti_mobius_hartbeat.create_cin(cin_path, cin_obj);
-    console.log(resp);
-//},10000);
-},1800000);
-    /*app.get('/status', (req, res) => {
-        const healthcheck = {
-            uptime: process.uptime(),
-            status: "UP",
-            timestamp: Date.now()
-        };
-        res.send(healthcheck);
-    });
-    // app.get('/errlog', (req, res) => {
-    //     if(fs.existsSync(err_log)){
-    //         var log = fs.readFileSync(err_log);
-    //         res.send(log);
-    //         //   fs.unlinkSync(err_log);
-    //     }
-    //     else{
-    //         res.send({status:""});
-    //     }
-    // });
-    app.listen(conf.health.port, () => {
-        console.log('Health Checker Start');
-    });
-    */
-}
-

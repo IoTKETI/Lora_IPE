@@ -2,7 +2,6 @@ var conf = {};
 var cse = {};
 var ae = {};
 var lora = {};
-var health = {};
 
 //cse config
 cse.host = "203.253.128.161";
@@ -12,8 +11,7 @@ cse.id = "/Mobius2";
 cse.mqttport = "1883";
 
 //ae config
-// ae.name = "9999991000000057";
-ae.name = "keti_parking";
+ae.name = "keti_tracker";
 ae.id = "S" + ae.name;
 ae.parent = "/" + cse.name;
 ae.appid = "lora"
@@ -22,13 +20,8 @@ ae.appid = "lora"
 lora.host = "203.253.128.164";
 lora.mqttport = "1883";
 
-//health config
-health.ae = "";
-health.cnt = "";
-
 conf.cse = cse;
 conf.ae = ae;
 conf.lora = lora;
-conf.health = health;
 
 module.exports = conf;
