@@ -14,13 +14,6 @@ LoRa IPE working the role of delivering the data received from the lora server t
  
 ```
 ## Configuration
-- Open the &Cube-Thyme for Node.js source home directory
-- Install dependent libraries as below
-
-```
- npm install
- 
-```
 - Modify configuration file "conf.js" per your setting
 ```
  
