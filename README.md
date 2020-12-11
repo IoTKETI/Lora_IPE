@@ -1,20 +1,21 @@
 # LoRa_IPE
 
 ## version 
-1.0.0
+v1.0.0
 
 ## Introduction
-LoRa IPE working the role of delivering the data received from the lora server to the oneM2M-based platform
+- The LoRa IPE provides interworking between oneM2M system and LoRa networks. 
+- The web tutorial is available at the oneM2M youtube channel: 
 
 ## Installation
 - Open the LoRa_IPE source home directory
-- Install dependent libraries as below
+- Install the dependent libraries as below
 ```
  npm install
  
 ```
 ## Configuration
-- Modify configuration file "conf.js" per your setting
+- Modify the configuration file "conf.js" per your setting
 ```
  
 var conf = {};
@@ -47,7 +48,7 @@ module.exports = conf;
  
 ```
 ## Running
-Use node.js application execution command as below
+- Run the 'app.js' file as below
 ```
 node app.js
 ```
