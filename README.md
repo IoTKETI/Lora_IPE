@@ -5,7 +5,7 @@ v1.0.0
 
 ## Introduction
 - The LoRa IPE provides interworking between oneM2M system and LoRa networks. 
-- The web tutorial is available at the oneM2M youtube channel: 
+- The web tutorial is available at the oneM2M youtube channel: https://youtu.be/-s5bSvzJcXo
 
 ## Installation
 - Open the LoRa_IPE source home directory
